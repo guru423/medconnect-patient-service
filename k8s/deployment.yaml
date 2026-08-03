@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: patient-service
+  namespace: medconnect-dev
+  labels:
+    app: patient-service
+    owner: patient-team
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: patient-service
+  template:
+    metadata:
+      labels:
+        app: patient-service
+        owner: patient-team
+    spec:
+      containers:
+        - name: patient-service
+          image: guru423/medconnect-patient-service:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: patient-service-svc
+  namespace: medconnect-dev
+spec:
+  selector:
+    app: patient-service
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
