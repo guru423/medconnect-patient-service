@@ -11,6 +11,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout platform policies
+        uses: actions/checkout@v4
+        with:
+          repository: guru423/medconnect-platform-config
+          path: platform-config
+
+      - name: Install Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+
+      - name: Run OPA policy checks
+        run: conftest test k8s/deployment.yaml -p platform-config/policies
+
       - name: Build Docker image
         run: docker build -t medconnect-patient-service:${{ github.sha }} .
 
